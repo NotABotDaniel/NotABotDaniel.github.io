@@ -3,7 +3,6 @@ const ctx = canvas.getContext("2d");
 
 const mazeSize = 20;
 const keys = {};
-const maze = Array(mazeSize + 1).fill(true).map(() => Array(mazeSize + 1).fill(true));
 
 const crossLength = Math.sqrt(canvas.width * canvas.width + canvas.height * canvas.height);
 
@@ -44,12 +43,15 @@ const max = {
     y : 2
 }
 
+let maze = Array(mazeSize + 1).fill(true).map(() => Array(mazeSize + 1).fill(true));
+
 let dirs = [0,1,2,3];
 
 let time = 0;
 let map = false;
 let objective = false;
 let gameState = "preGame";
+
 let seed = 0;
 let inputSeed = "";
 let seedLength = 17;
@@ -307,6 +309,7 @@ function castRay(a) {
                 ray.x -= Math.cos(a) * ray.speed2;
                 ray.y -= Math.sin(a) * ray.speed2;
                 dist -= ray.speed2;
+                
                 if (!maze[Math.floor(ray.x / cellWidth)][Math.floor(ray.y / cellHeight)]) {
                     objective = false;
                     return dist;
@@ -322,6 +325,7 @@ function castRay(a) {
                 ray.x -= Math.cos(a) * ray.speed2;
                 ray.y -= Math.sin(a) * ray.speed2;
                 dist -= ray.speed2;
+                
                 if (!Math.sqrt(
                     (((ray.x/cellWidth)-(max.x+0.5))*
                     ((ray.x/cellWidth)-(max.x+0.5)))+
@@ -383,11 +387,23 @@ function seedInput() {
     ctx.fillStyle = "black";
 
     if (inputSeed == "") {
-        ctx.fillText("Input Seed (numbers only)", canvas.width / 2 - 180, canvas.height / 2 + 70);
-        ctx.fillText("Press Enter to Start With Random Seed", canvas.width / 2 - 260, canvas.height / 2 + 150);
+        ctx.fillText(
+            "Input Seed (numbers only)", 
+            canvas.width / 2 - 180, 
+            canvas.height / 2 + 70
+        );
+        ctx.fillText(
+            "Press Enter to Start With Random Seed", 
+            canvas.width / 2 - 260, 
+            canvas.height / 2 + 150
+        );
     } else {
         ctx.fillText(inputSeed, canvas.width / 2 - 180, canvas.height / 2 + 70);
-        ctx.fillText("Press Enter to Play Your Seed", canvas.width / 2 - 200, canvas.height / 2 + 150)
+        ctx.fillText(
+            "Press Enter to Play Your Seed", 
+            canvas.width / 2 - 200, 
+            canvas.height / 2 + 150
+        );
     }
 }
 
@@ -408,13 +424,11 @@ function animate() {
             gameState = "gameRunning";
 
             if (inputSeed == "") {
-                inputSeed = String(Math.random());
+                inputSeed = String(Math.random() * Math.pow(10, 17));
+                seed = Number(inputSeed) / Math.pow(10, 17);
             } else {
-                seedLength = inputSeed.length;
-                inputSeed = String(Number(inputSeed) / Math.pow(10, seedLength));
+                seed = String(Number(inputSeed) / Math.pow(10, inputSeed.length));
             }
-            seed = Number(inputSeed);
-            
 
             createMaze();
         }
@@ -429,36 +443,66 @@ function animate() {
     }
 
     if (gameState == "complete") {
-        ctx.fillStyle = "rgb(0,255,0)"
+        ctx.fillStyle = "rgb(0,255,0)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.font = "48px serif";
         ctx.fillStyle = "black";
         ctx.fillText("COMPLETE!", canvas.width / 2 - 100, canvas.height / 2 - 70);
-        inputSeed = String(Number(inputSeed) * Math.pow(10, seedLength));
         ctx.font = "24px serif";
-        ctx.fillText("Seed: " + inputSeed, canvas.width / 2 - 200, canvas.height / 2 + 70);
-        ctx.fillText("Press Enter to Try Seed Again", inputSeed, canvas.width / 2 - 200, canvas.height / 2 + 100);
-        ctx.fillText("Press Space to Play a Different Seed", inputSeed, canvas.width / 2 - 200, canvas.height / 2 + 130);
+        ctx.fillText(
+            "Seed: " + inputSeed, 
+            canvas.width / 2 - 200, 
+            canvas.height / 2 + 50
+        );
+        ctx.fillText(
+            "Press Enter to Try Seed Again", 
+            canvas.width / 2 - 210, 
+            canvas.height / 2 + 120
+        );
+        ctx.fillText(
+            "Press Space to Play a Different Seed", 
+            canvas.width / 2 - 270, 
+            canvas.height / 2 + 160
+        );
 
         printTimer();
 
         if (keys["Enter"]) {
-            gameState = "gameRunning";
-
-            seedLength = inputSeed.length;
-            inputSeed = String(Number(inputSeed) / Math.pow(10, seedLength));
-        
-            seed = Number(inputSeed);
-        }
-
-        if (keys["Space"]) {
             time = 0;
             map = false;
             objective = false;
-            gameState = "preGame";
+            gameState = "gameRunning";
+            seed = Number(inputSeed);
+
+            player.x = 2.5 * cellWidth;
+            player.y = 2.5 * cellHeight;
+            player.dir = 0;
+        }
+
+        if (keys[" "]) {
+            time = 0;
+            map = false;
+            objective = false;
             seed = 0;
             inputSeed = "";
             seedLength = 17;
+            
+            player.x = 2.5 * cellWidth;
+            player.y = 2.5 * cellHeight;
+            player.dir = 0;
+
+            mouse.x = 2;
+            mouse.y = 2;
+            mouse.dir = 0;
+            mouse.dist = 0;
+
+            max.x = 2;
+            max.y = 2;
+            max.dist = 0;
+
+            maze = Array(mazeSize + 1).fill(true).map(() => Array(mazeSize + 1).fill(true));
+
+            gameState = "preGame";
         }
     }
 
@@ -477,6 +521,7 @@ document.addEventListener("keydown", (e) => {
         }
     }
 });
+
 document.addEventListener("keyup", (e) => {
     keys[e.key] = false;
     e.preventDefault();
