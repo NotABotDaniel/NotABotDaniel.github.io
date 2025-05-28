@@ -513,7 +513,7 @@ document.addEventListener("keydown", (e) => {
     keys[e.key] = true; 
     e.preventDefault(); 
 
-    if (inputSeed.length < 10 && gameState == "preGame") {
+    if (inputSeed.length < 17 && gameState == "preGame") {
         if (e.key >= "0" && e.key <= "9") {
             inputSeed += e.key;
         } else if (e.key == "Backspace") {
