@@ -10,16 +10,9 @@ const bounds = {
 }
 
 const camera = {
-    x : 1200,
+    x : 0,
     y : 1200,
-    z : 1200,
-    vx1 : 22.5,
-    vx2 : 67.5,
-    vy1 : 22.5,
-    vy2 : 67.5,
-    arez : 0.1,
-    px : 0,
-    py : 0
+    z : 500,
 }
 
 const ball = {
@@ -29,23 +22,21 @@ const ball = {
     z : bounds.z / 2,
     dx : 10,
     dy : 5,
-    dz : 0
+    dz : 0,
+    rez : 10
 }
 
-const ray = {
-    x : camera.x,
-    y : camera.y,
-    z : camera.z,
-    pxrezx : canvas.width / ((camera.vx1 - camera.vx2) / camera.arez),
-    pxrezy : canvas.height / ((camera.vy1 - camera.vy2) / camera.arez),
-    voidDist : Math.sqrt(
-        Math.pow(camera.x, 2) + Math.pow(camera.y, 2) + Math.pow(camera.z, 2)) + 50,
-    dist : 0,
-    tta : 0,
-    phi : 0,
-    speed : 5,
-    hit : ""
+const p = {
+    x : 0,
+    y : 0,
+    z : 0,
+    a : {},
+    b : {},
+    c : {}
 }
+
+let coords = [];
+let face = [];
 
 function updateBall() {
     ball.x += ball.dx;
@@ -57,68 +48,97 @@ function updateBall() {
     if (ball.x < 0 || ball.x > bounds.x) {
         ball.dx *= -1;
     }
-    if (ball.y < 0 || ball.y > bounds.x) {
+    if (ball.y < 0 || ball.y > bounds.y) {
         ball.dy *= -1;
     }
-    if (ball.z < 0 || ball.z > bounds.x) {
+    if (ball.z < 0 || ball.z > bounds.z) {
         ball.dz *= -1;
     }
 }
 
-function castRay() {
-    ray.x = camera.x;
-    ray.y = camera.y;
-    ray.z = camera.z;
+function createSphere() {
+    for (let a = 1; a < ball.rez; a++) {
+        face.push(0);
+        face.push(a);
+        face.push(a + 1);
+    }
 
-    ray.dist = 0;
+    face.push(0);
+    face.push(ball.rez - 1);
+    face.push(1);
+    
 
-    while (ray.dist < ray.voidDist) {
-        ray.x += ray.speed * Math.cos(ray.tta) * Math.cos(ray.phi);
-        ray.y += ray.speed * Math.sin(ray.tta) * Math.cos(ray.phi);
-        ray.z += ray.speed * Math.sin(ray.phi);
-
-        ray.dist += ray.speed;
-
-        if (Math.sqrt(
-            Math.pow((ray.x - ball.x), 2) + 
-            Math.pow((ray.y - ball.y), 2) + 
-            Math.pow((ray.z - ball.z), 2)
-        ) < ball.r) {
-            ray.hit = "ball";
-            return;
+    for (let row = 0; row < ball.rez - 3; row++) {
+        for (a = 1; a < 10; a++) {
+            face.push(a + (ball.rez * row));
+            face.push(a + (ball.rez * row + 1));
+            face.push(a + (ball.rez * row + 1) + 1);
+            face.push(a + (ball.rez * row));
+            face.push(a + (ball.rez * row + 1) + 1);
+            face.push(a + (ball.rez * row) + 1);
         }
     }
-    ray.hit = "void";
-    return;
+
+    for (let a = 1; a < ball.rez; a++) {
+        face.push(ball.rez * (ball.rez - 2) + a);
+        face.push(ball.rez * (ball.rez - 2) + a + 1);
+        face.push(ball.rez * (ball.rez - 1) + 2);
+    }
+
+    face.push(ball.rez * (ball.rez - 2) + ball.rez);
+    face.push(ball.rez * (ball.rez - 2) + 1);
+    face.push(ball.rez * (ball.rez - 1) + 2);
+
 }
 
-function view() {
-    for (camera.px = 0; camera.px < canvas.width; camera.px += ray.pxrezx) {
-        for (camera.py = 0; camera.py < canvas.height; camera.py += ray.pxrezy) {
-            
-            ray.tta = (camera.px / ray.pxrezx) + camera.vx1;
-            ray.phi = (camera.py / ray.pxrezy) + camera.vy1;
-            
-            castRay();
-
-            if (ray.hit == "ball") {
-                ctx.fillStyle = "blue";
-            } else if (ray.hit == "void") {
-                ctx.fillStyle = "black";
-            }
-            ctx.fillRect(camera.px, camera.py, camera.px + ray.pxrezx, camera.py + ray.pxrezy);
+function setCoords() {
+    coords = [ball.x, ball.y, ball.z - ball.r];
+    
+    for (let tta = -Math.PI; tta < Math.PI; tta += Math.PI / ball.rez) {
+        for (let phi = -Math.PI / 2 + Math.PI / ball.rez; phi < Math.PI / 2 - Math.PI / ball.rez; phi += Math.PI / ball.rez) {
+            coords.push(ball.r * Math.sin(phi) * Math.cos(tta) + ball.x)
+            coords.push(ball.r * Math.sin(phi) * Math.sin(tta) + ball.y)
+            coords.push(ball.r * Math.cos(phi) + ball.z)
         }
     }
 
+    coords.push(ball.x, ball.y, ball.z + ball.r)
+}
+
+function project(i) {
+    p.x = coords[i * 3];
+    p.y = coords[i * 3 + 1];
+    p.z = coords[i * 3 + 2];
+    return {
+        x: (p.x - camera.x) * (camera.y / (camera.y - p.z)) + canvas.width / 2, 
+        y: (p.z - camera.z) * (camera.y / (camera.y - p.z)) + canvas.height / 2
+    }
+}
+
+function drawFaces() {
+    ctx.beginPath();
+    for (let f = 0; f < face.length; f += 3) {
+        p.a = project(face[f]);
+        p.b = project(face[f + 1]);
+        p.c = project(face[f + 2]);
+        
+        ctx.moveTo(p.a.x, p.a.y);
+        ctx.lineTo(p.b.x, p.b.y);
+        ctx.lineTo(p.c.x, p.c.y);
+        ctx.lineTo(p.a.x, p.a.y);
+    }
+    ctx.stroke();
 }
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     updateBall();
-    view();
+    setCoords();
+    drawFaces();
 
-    // requestAnimationFrame(animate);
+    requestAnimationFrame(animate);
 }
 
+createSphere();
 animate();
