@@ -29,10 +29,7 @@ const ball = {
 const p = {
     x : 0,
     y : 0,
-    z : 0,
-    a : {},
-    b : {},
-    c : {}
+    z : 0
 }
 
 let coords = [];
@@ -118,14 +115,14 @@ function project(i) {
 function drawFaces() {
     ctx.beginPath();
     for (let f = 0; f < face.length; f += 3) {
-        p.a = project(face[f]);
-        p.b = project(face[f + 1]);
-        p.c = project(face[f + 2]);
-        
-        ctx.moveTo(p.a.x, p.a.y);
-        ctx.lineTo(p.b.x, p.b.y);
-        ctx.lineTo(p.c.x, p.c.y);
-        ctx.lineTo(p.a.x, p.a.y);
+        const a = project(face[f]);
+        const b = project(face[f + 1]);
+        const c = project(face[f + 2]);
+
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.lineTo(c.x, c.y);
+        ctx.lineTo(a.x, a.y);
     }
     ctx.stroke();
 }
@@ -140,5 +137,6 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
+ctx.strokeStyle = "white";
 createSphere();
 animate();
