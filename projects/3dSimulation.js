@@ -29,7 +29,7 @@ const ball = {
     dx : 1,
     dy : 2,
     dz : 0,
-    rez : 20
+    rez : 25
 }
 
 // Define the 8 corners of the cube
@@ -44,7 +44,7 @@ const corners = [
     {x: 0, y: bounds.y, z: bounds.z},
 ];
 
-const light = {x : 500, y : 500, z : 1000}
+const light = {x : 250, y : 250, z : 0}
 
 let keys = {};
 
@@ -230,9 +230,9 @@ function drawFaces() {
         
         // 2. Compute normal vector (u × v)
         const normal = {
-            x: -(u.y * v.z - u.z * v.y),
-            y: -(u.z * v.x - u.x * v.z),
-            z: -(u.x * v.y - u.y * v.x)
+            x: (u.y * v.z - u.z * v.y),
+            y: (u.z * v.x - u.x * v.z),
+            z: (u.x * v.y - u.y * v.x)
         };
         
         // 3. Normalize the normal
@@ -275,10 +275,11 @@ function drawFaces() {
         const camDot = normal.x * toCamera.x + normal.y * toCamera.y + normal.z * toCamera.z;
         
         // 8. Average lighting influence
-        let intensity = (lightDot + camDot) / 2;
+        let intensity = ((lightDot + camDot) / 2) + 0.5;
         intensity = Math.max(0, intensity); // no negative light
-        const shade = Math.floor(intensity * 255);
+        const shade = Math.floor((intensity * 255));
         ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
+        ctx.strokeStyle = `rgb(${shade}, ${shade}, ${shade})`;
         
         // 9. Draw triangle
         const proj1 = project(a);
@@ -290,6 +291,7 @@ function drawFaces() {
         ctx.lineTo(proj3.x, proj3.y);
         ctx.closePath();
         ctx.fill();
+        ctx.stroke();
     }
 }
 
@@ -334,9 +336,9 @@ function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = "blue";
+    ctx.strokeStyle = "blue";
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    ctx.fillStyle = "white";
     moveCamera();
     updateBall();
     setCoords();
