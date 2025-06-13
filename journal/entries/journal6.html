@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<Head>
+	<Title>Daniel's Journal</Title>
+	<script src="../../js/init.js"></script>
+	<link href="../../favicon.ico" rel="shortcut icon" type="image/x-icon">
+	<link rel="stylesheet" type="text/css" href="../../styles.css">
+
+</Head>
+<body>
+<header>
+	<h1>Final Project</h1>
+	
+</header>
+<nav>
+	<a id="homeLink" href="../index.html">Back to journal</a>
+
+</nav>
+<main>
+    <p>
+        For my final project, I took on an ambitious goal. 
+        I decided to create a 3D simulation complete with spheres and shaddows.
+        This turned out to be even more difficult than I anticipated, 
+        Not because of the complexity of the program (even though it was exremely complicated), 
+        but because of the various technical issues I experienced. 
+    </p>
+    <p>
+        My first attempt at the project didn't go so well. 
+        I tried to use ray tracing like in my maze game project 
+        (<a href="../../projects/mazeGame.html">mazeGame.html</a>) but 3D. 
+        This required way too much computing power with the simple mechanics that I created, 
+        and the html pages wouldnt even open. 
+        Eventualy, I decided to scrap that method and try something else.
+    </p>
+    <p>
+        I did some research on other way to render 3D objects 
+        and found this triangle baised projection mothod.
+        For this, I needed to design a way to store the coordinates of all the points in a 
+        sphere, and then generate all the triangles between the right points.
+        Then I would need to exclude triangles facing away from the camera,
+        and finaly I woudld need to do a ton of math in order to see whether 
+        a face would reflect any light.
+    </p>
+    <p>
+        At first I decided to store the coordinates of the point in a list in groups of 3. 
+        (I later changed this to a list that held objects with x,y,z coords)
+        I created a function that calculated the coordinates using a 3D distance formula 
+        I found online. Throughout the project I made all constants changable at the top of the code.
+        This included the radius and rezolution of the sphere.
+    </p>
+    <p>
+        To generate the triangles, I wrote out the sequence of indexes of the points in 
+        the coords list that represented the triangles. First, it would connect the bottom 
+        point to all the others around it (0,1,2;0,2,3;0,3,4). Then, It would connect the points in quads.
+        For each horisontal segment, it would cycle through all of the verticle slices. For each of those,
+        it connected the base point to the one on the row above and the next one on that row. 
+        Then it would connect that one to the next one on the row above and then the next one on the same row.
+        This was repeated for the whole sphere and then the cap was repeated for the top.
+    
+    </p>
+    <p>
+        At this point, I had an image of a bouncing wireframe ball. I could have stopped here, 
+        but I was ditermened to create shaddows like I had set out to do.
+        Note that throughtout this portion of the project, I was not able to use the inspect tool.
+        I later restarted multiple times until it worked again.
+    
+    </p>
+    <p>
+        I then needed a way to exlude the faces in the other direction. 
+        I realizede that I could just make the closer triangles drawn first, 
+        so the triangles on the other side would be hidden behind them.
+    
+    </p>
+    <p>
+        Finaly came the most difficult portion of the project, 
+        I needed to color the faces based on how they reflected the light.
+        To do this, I reasoned that the closer the angle of the face was to the 
+        average of the angles twoard the camera and the light, the lighter colored it should be.
+        This required an immense amount of math that I do not wish to go into, but baisically, 
+        I callculated all of the angles neccesary for input and found how close they were 
+        (using formulas from online).
+    
+    </p>
+    <p>
+        The final product includes one ball bouncing around the screen with shaddows. 
+        I attemped at moving the camera around but it didn't work well. 
+        I also tried to make the bounds visible but failed.
+        Despite this, it looks amazing and I am proud of my work.
+    
+    </p>
+    <p>Here is the link: <a href="../../projects/3dSimulation.html">3dSimulation.html</a></p>
+
+</main>
+</body>
+</html>

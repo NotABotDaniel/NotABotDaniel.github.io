@@ -26,10 +26,10 @@ const ball = {
     x : bounds.x / 2,
     y : bounds.y / 2,
     z : bounds.z / 2,
-    dx : 2,
-    dy : 1,
+    dx : 1,
+    dy : 2,
     dz : 0,
-    rez : 10
+    rez : 20
 }
 
 // Define the 8 corners of the cube
@@ -116,7 +116,7 @@ function createSphere() {
         face.push({a : 0, b : j, c : next});
     }
     // connect quads between stacks
-    for (let i = 1; i < ball.rez + 3; i++) {
+    for (let i = 1; i < 1.65 * ball.rez; i++) {
         for (let j = 0; j < 2 * ball.rez; j++) {
             let curr = i * ball.rez + j;
             let next = i * ball.rez + (j + 1) % (2 * ball.rez);
