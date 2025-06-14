@@ -143,7 +143,7 @@ function setCoords() {
     // outer loop: phi = latitude, cycle from the bottom to the top of the ball
     for (
         let phi = Math.PI / ball.rez; 
-        phi < Math.PI - Math.PI / ball.rez;  
+        phi < Math.PI;  
         phi += Math.PI / ball.rez
     ) {
         // inner loop: thetea = longitude. for a single phi, 
@@ -165,7 +165,7 @@ function sortFaces() {
     face.sort((f1, f2) => {
         const avgDist1 = getFaceDistance(f1);
         const avgDist2 = getFaceDistance(f2);
-        return avgDist1 - avgDist2; // closest faces first
+        return avgDist2 - avgDist1; // closest faces first
     });
 }
 
@@ -275,7 +275,7 @@ function drawFaces() {
         const camDot = normal.x * toCamera.x + normal.y * toCamera.y + normal.z * toCamera.z;
         
         // 8. Average lighting influence
-        let intensity = ((lightDot + camDot) / 2) + 0.5;
+        let intensity = ((lightDot + camDot) / 2) + 0.2;
         intensity = Math.max(0, intensity); // no negative light
         const shade = Math.floor((intensity * 255));
         ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
