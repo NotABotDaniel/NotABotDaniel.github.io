@@ -8,14 +8,15 @@ const gravity = .5;
 // the camera looks in the negative y direction
 
 const bounds = {
-    x : 500,
-    y : 500,
-    z : 500
+    x : 450,
+    y : 450,
+    z : 450
 }
 
+// initial camera position
 const camera = {
     x : 250,
-    y : 10000,
+    y : 2000,
     z : 250,
     speed : 5
 }
@@ -32,14 +33,14 @@ const ball = {
     rez : 25
 }
 
-// Define the 8 corners of the cube
+// Define the 8 corners of the  bounds
 const corners = [
     {x: 0, y: 0, z: 0},
     {x: bounds.x, y: 0, z: 0},
-    {x: bounds.x, y: bounds.y, z: 0},
-    {x: 0, y: bounds.y, z: 0},
-    {x: 0, y: 0, z: bounds.z},
     {x: bounds.x, y: 0, z: bounds.z},
+    {x: 0, y: 0, z: bounds.z},
+    {x: 0, y: bounds.y, z: 0},
+    {x: bounds.x, y: bounds.y, z: 0},
     {x: bounds.x, y: bounds.y, z: bounds.z},
     {x: 0, y: bounds.y, z: bounds.z},
 ];
@@ -56,27 +57,28 @@ let coords = [];
 // to interperate, each set of three values represent indexes of coords that form a triangle
 let face = [];
 
+// physics for the ball
 function updateBall() {
     ball.x += ball.dx;
     ball.y += ball.dy;
     ball.z += ball.dz;
 
-    if (ball.x < 0) {
+    if (ball.x - ball.r < 0) {
         ball.dx = Math.abs(ball.dx);
     }
-    if (ball.x > bounds.x) {
+    if (ball.x + ball.r > bounds.x) {
         ball.dx = -Math.abs(ball.dx);
     }
-    if (ball.y < 0) {
+    if (ball.y - ball.r < 0) {
         ball.dy = Math.abs(ball.dy);
     }
-    if (ball.y > bounds.y) {
+    if (ball.y + ball.r > bounds.y) {
         ball.dy = -Math.abs(ball.dy);
     }
-    if (ball.z < 0) {
+    if (ball.z - ball.r < 0) {
         ball.dz = Math.abs(ball.dz);
     }
-    if (ball.z > bounds.z) {
+    if (ball.z + ball.r > bounds.z) {
         ball.dz = -Math.abs(ball.dz);
         ball.z -= gravity;
     }
@@ -84,12 +86,13 @@ function updateBall() {
     ball.dz += gravity;
 }
 
+// controlls for the user to move around
 function moveCamera() {
     if (keys["w"]) {
-        camera.y -= camera.speed;
+        camera.z -= camera.speed;
     }
     if (keys["s"]) {
-        camera.y += camera.speed;
+        camera.z += camera.speed;
     }
 
     if (keys["a"]) {
@@ -100,14 +103,14 @@ function moveCamera() {
     }
 
     if (keys["ArrowUp"]) {
-        camera.z -= camera.speed;
+        camera.y -= camera.speed * 2;
     }
     if (keys["ArrowDown"]) {
-        camera.z += camera.speed;
+        camera.y += camera.speed * 2;
     }
 }
 
-// this function creates the faces list
+// creates the faces list
 // it remains constant througout the animation
 function createSphere() {
     // connect bottom cap
@@ -196,19 +199,25 @@ function getFaceDistance(f) {
     return (d1 + d2 + d3) / 3;
 }
 
-
-// this takes the index of a point and uses the 3D coordinates 
-// to output xy projected coordinates for the screen
-function project(index) {
+// takes the xyz coordinates of a point 
+// projects it and return the xy coordinates
+function projectPixel(pixel) {
     return {
-        x : (coords[index].x - camera.x) * (camera.y / (camera.y - coords[index].y)) + canvas.width / 2, 
-        y : (coords[index].z - camera.z) * (camera.y / (camera.y - coords[index].y)) + canvas.height / 2
+        x : (pixel.x - camera.x) * (camera.y / (camera.y - pixel.y)) + canvas.width / 2, 
+        y : (pixel.z - camera.z) * (camera.y / (camera.y - pixel.y)) + canvas.height / 2
     }
 }
 
-// this function currently draws a wireframe of each face
-// this will be replaced later with colored faces based on lighting
+// takes the index of a point, inputs 3D coordinates into the projectPixel function
+// return xy projected coordinates for the screen
+function project(index) {
+    return {
+        x : projectPixel({x : coords[index].x, y : coords[index].y, z : coords[index].z}).x, 
+        y : projectPixel({x : coords[index].x, y : coords[index].y, z : coords[index].z}).y 
+    }
+}
 
+// this function draws filled in faces based on lighting
 function drawFaces() {
     for (let f = 0; f < face.length; f++) {
         const {a, b, c} = face[f];
@@ -295,55 +304,58 @@ function drawFaces() {
     }
 }
 
-
-function drawBounds() {
+function drawFrontBounds() {
     ctx.beginPath();
-    
-    // Project 3D corners to 2D screen space
-    const projected = corners.map(p => ({
-        x: (p.x - camera.x) * (camera.y / (camera.y - p.y)) + canvas.width / 2,
-        y: (p.z - camera.z) * (camera.y / (camera.y - p.y)) + canvas.height / 2
-    }));
 
     // Draw front face
-    ctx.moveTo(projected[0].x, projected[0].y);
-    ctx.lineTo(projected[1].x, projected[1].y);
-    ctx.lineTo(projected[2].x, projected[2].y);
-    ctx.lineTo(projected[3].x, projected[3].y);
-    ctx.lineTo(projected[0].x, projected[0].y);
+    ctx.moveTo(projectPixel(corners[4]).x, projectPixel(corners[4]).y);
+    for(let c = 4; c < 8; c++) {
+        ctx.lineTo(projectPixel(corners[c]).x, projectPixel(corners[c]).y);
+    }
+    ctx.lineTo(projectPixel(corners[4]).x, projectPixel(corners[4]).y);
 
-    // Draw back face
-    ctx.moveTo(projected[4].x, projected[4].y);
-    ctx.lineTo(projected[5].x, projected[5].y);
-    ctx.lineTo(projected[6].x, projected[6].y);
-    ctx.lineTo(projected[7].x, projected[7].y);
-    ctx.lineTo(projected[4].x, projected[4].y);
+    ctx.stroke();
+
+}
+
+function drawBackBounds() {
+    ctx.beginPath();
+
+    // draw back face
+    ctx.moveTo(projectPixel(corners[0]).x, projectPixel(corners[0]).y);
+    for(let c = 1; c < 4; c++) {
+        ctx.lineTo(projectPixel(corners[c]).x, projectPixel(corners[c]).y);
+    }
+    ctx.lineTo(projectPixel(corners[0]).x, projectPixel(corners[0]).y);
 
     // Connect front to back
-    ctx.moveTo(projected[0].x, projected[0].y);
-    ctx.lineTo(projected[4].x, projected[4].y);
-    ctx.moveTo(projected[1].x, projected[1].y);
-    ctx.lineTo(projected[5].x, projected[5].y);
-    ctx.moveTo(projected[2].x, projected[2].y);
-    ctx.lineTo(projected[6].x, projected[6].y);
-    ctx.moveTo(projected[3].x, projected[3].y);
-    ctx.lineTo(projected[7].x, projected[7].y);
+    for(let c = 0; c < 4; c++) {
+        ctx.moveTo(projectPixel(corners[c]).x, projectPixel(corners[c]).y);
+        ctx.lineTo(projectPixel(corners[c + 4]).x, projectPixel(corners[c + 4]).y);
+    }
     
     ctx.stroke();
+
 }
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "blue";
-    ctx.strokeStyle = "blue";
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "black";
     ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.strokeStyle = "white";
+    drawBackBounds();
 
     moveCamera();
     updateBall();
     setCoords();
     sortFaces();
     drawFaces();
+
+    ctx.strokeStyle = "white";
+    drawFrontBounds();
 
     requestAnimationFrame(animate);
 }
